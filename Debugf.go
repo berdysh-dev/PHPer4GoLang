@@ -1,4 +1,4 @@
-package github.com/berdysh-dev/PHPer4GoLang
+package PHPer4GoLang
 
 import (
     "fmt"
