@@ -96,6 +96,10 @@ func Mktime(hour int,minute int,second int,month int,day int,year int) (int64){
     return 0 ;
 }
 
+func Gmmktime(hour int,minute int,second int,month int,day int,year int) (int64){
+    return 0 ;
+}
+
 
 
 
