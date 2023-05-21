@@ -6,6 +6,8 @@ import (
     "errors"
     "time"
     "net/http"
+    "strings"
+    "io"
     "io/ioutil"
     "crypto/tls"
 )
@@ -13,9 +15,16 @@ import (
 type cURLHandler struct {
     url string ;
     method string ;
-    returntransfer int ;
+    returntransfer bool ;
 
     inited int ;
+
+    postfields string ;
+
+    is_post bool ;
+    is_header bool ;
+
+    opt_header []string ;
 
     http_Transport  http.Transport ;
     http_Client     http.Client ;
@@ -63,11 +72,23 @@ func Curl_setopt(v ...interface{}){
 
     switch(v[1]){
     case CURLOPT_URL:{
-            Debugf("CURLOPT_URL[%v]",v[2]);
-            ch.url = v[2].(string) ;
+            ch.url = Strval(v[2]) ;
+            Debugf("CURLOPT_URL[%s]",ch.url) ;
+        }
+    case CURLOPT_HTTPHEADER:{
+            ch.opt_header = v[2].([]string) ;
         }
     case CURLOPT_RETURNTRANSFER:{
-            ch.returntransfer = v[2].(int) ;
+            ch.returntransfer = Boolval(v[2]) ;
+        }
+    case CURLOPT_HEADER:{
+            ch.is_header = Boolval(v[2]) ;
+        }
+    case CURLOPT_POST:{
+            ch.is_post = Boolval(v[2]) ;
+        }
+    case CURLOPT_POSTFIELDS:{
+            ch.postfields = Strval(v[2]) ;
         }
     }
 }
@@ -93,12 +114,33 @@ func Curl_exec(ch *cURLHandler) (string,error){
         ch.inited = 1 ;
     }
 
-    http_NewRequest , err := http.NewRequest(ch.method,ch.url, nil) ;
+    method := ch.method ;
+
+    var io_Reader_Post io.Reader = nil ;
+
+    if(ch.is_post == true){
+        method = "POST" ;
+        io_Reader_Post = strings.NewReader(ch.postfields) ;
+    }
+
+    http_NewRequest , err := http.NewRequest(method,ch.url,io_Reader_Post) ;
 
     if(err != nil){
         Debugf("ERR[%v]",err) ;
     }else{
-        http_NewRequest.Header.Add("If-None-Match", `W/"wyzzy"`) ;
+        if(false){
+            http_NewRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+            http_NewRequest.Header.Set("Content-Type", "application/json")
+        }
+
+        if(len(ch.opt_header) > 0){
+            for _,line := range ch.opt_header{
+                match,err := Preg_match(`^([^\:]+)\s*:\s*(.*)$`,line) ;
+                if(err == nil){
+                    http_NewRequest.Header.Set(match[1],match[2]) ;
+                }
+            }
+        }
 
         ch.http_Response , err = ch.http_Client.Do(http_NewRequest) ;
 
@@ -138,10 +180,12 @@ func Curl_getinfo(ch *cURLHandler) (cURLInfo){
 
     info.Download_content_length = ch.http_Response.ContentLength ;
 
-    if(ch.TLS.HandshakeComplete){
-        info.Ssl_verify_result = 1 ;
-    }else{
-        info.Ssl_verify_result = 0 ;
+    if(ch.TLS != nil){
+        if(ch.TLS.HandshakeComplete){
+            info.Ssl_verify_result = 1 ;
+        }else{
+            info.Ssl_verify_result = 0 ;
+        }
     }
 
     return info ;
