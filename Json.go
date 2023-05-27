@@ -1,8 +1,9 @@
 package PHPer4GoLang
 
 import (
-    "fmt"
 _   "log"
+    "fmt"
+    "strings"
     "errors"
     "reflect"
     "encoding/json"
@@ -13,21 +14,19 @@ type JsonClass struct {
     MapJson map[string]interface{} "MapJson" ;
 } ;
 
-func (class *JsonClass) Getter(key string) (interface{},string){
-    v := class.MapJson[key] ;
 
-    t := Gettype(v) ;
-    x := reflect.ValueOf(v) ;
+func (class *JsonClass) Getter(i ... interface{}) (interface{},string){
 
-    switch(x.Kind()){
-    default:{
-            t = fmt.Sprintf("%v",x.Kind()) ;
-        }
+
+    if(len(i) == 1){
+        v := class.MapJson[i[0].(string)] ;
+        x := reflect.ValueOf(v) ;
+        k := fmt.Sprintf("%v",x.Kind()) ;
+        return v.(interface{}),k ;
+    }else{
+        var v interface{} ;
+        return v,"error" ;
     }
-
-    _ = t ;
-
-    return v.(interface{}),t ;
 }
 
 func (class *JsonClass) GetterMap(key string) (map[string]interface{},string){
@@ -44,8 +43,56 @@ func (class *JsonClass) GetterArray(key string) ([]interface{},string){
     return v.([]interface{}),t ;
 }
 
+func upperCamel(uc string) (string){
+    return strings.ToUpper(uc[:1]) + uc[1:] ;
+}
+
 func (class *JsonClass) RAW() (map[string]interface{}){
     return class.MapJson ;
+}
+
+func convertUpper_r (i interface{}) (interface{}){
+    k,t := Gettype2(i) ;
+    switch(k){
+    case "map":{
+            if(t == "map[string]interface {}"){
+                hash := make(map[string]interface{}) ;
+                for kk , vv := range i.(map[string]interface {}){
+                    hash[upperCamel(kk)] = convertUpper_r(vv) ;
+                }
+                return hash ;
+            }
+        }
+    case "slice":{
+            if(t == "[]interface {}"){
+                var ar []interface{} ;
+                for _ , vv := range i.([]interface {}){
+                    ar = append(ar,convertUpper_r(vv)) ;
+                }
+                return ar ;
+            }
+        }
+    default:{
+            if(k == "float64"){
+                return uint64(i.(float64)) ;
+            }else{
+                return i ;
+            }
+            // Debugf("[%v][%v]",k,t);
+        }
+    }
+    return nil ;
+}
+
+func ConvertUpper (src map[string]interface{}) (map[string]interface{}){
+
+    ret := make(map[string]interface{}) ;
+
+    for lc , v := range src{
+        ret[upperCamel(lc)] = convertUpper_r(v) ;
+    }
+
+    return ret ;
 }
 
 func Json_decode(i ... interface{}) (JsonClass,error){
@@ -56,9 +103,12 @@ func Json_decode(i ... interface{}) (JsonClass,error){
     err := errors.New("ASSERT") ;
     err = nil ;
 
-    if(len(i) == 1){
+    if(len(i) > 0){
         str := Strval(i[0]) ;
         json.Unmarshal([]byte(str),&(ret.MapJson)) ;
+        if(len(i) > 1){
+            ret.MapJson = ConvertUpper(ret.MapJson) ;
+        }
     }else{
         ret.MapJson = make(map[string]interface{}) ;
     }

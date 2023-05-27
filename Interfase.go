@@ -119,6 +119,15 @@ func Gettype(i interface{}) (string){
     return fmt.Sprintf(`%T`,i) ;
 }
 
+func Gettype2(i interface{}) (string,string){
+    v := reflect.ValueOf(i)
+
+    k := fmt.Sprintf(`%v`,v.Kind()) ;
+    t := fmt.Sprintf(`%T`,i) ;
+
+    return k,t ;
+}
+
 
 
 

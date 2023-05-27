@@ -158,7 +158,10 @@ func Curl_exec(ch *cURLHandler) (string,error){
 
                 for k,vs := range ch.http_Response.Header{
                     for idx,v := range vs{
-                        Debugf("[%v][%v][%v]",idx,k,v) ;
+                        _ = idx ;
+                        _ = k ;
+                        _ = v ;
+                        // Debugf("[%v][%v][%v]",idx,k,v) ;
                     }
                 }
             }
