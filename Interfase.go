@@ -4,11 +4,11 @@ package PHPer4GoLang
 //    "io/ioutil"
 //    "log"
 //    "os"
-//    "fmt"
 
 import (
     "reflect"
     "strconv"
+    "fmt"
 )
 
 func Strval(i interface{}) (string){
@@ -115,7 +115,9 @@ func Boolval(i interface{}) (bool){
     return ret ;
 }
 
-
+func Gettype(i interface{}) (string){
+    return fmt.Sprintf(`%T`,i) ;
+}
 
 
 

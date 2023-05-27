@@ -2,7 +2,7 @@ package PHPer4GoLang
 
 import (
     "fmt"
-    "log"
+_   "log"
     "errors"
     "reflect"
     "encoding/json"
@@ -10,29 +10,57 @@ import (
 
 type JsonClass struct {
     JsonClass string "JsonClass" ;
-    Data map[string]interface{} "Data" ;
+    MapJson map[string]interface{} "MapJson" ;
 } ;
 
-/*
-func (class *JsonClass) Data() (map[string]interface{}){
-    return class.Data ;
+func (class *JsonClass) Getter(key string) (interface{},string){
+    v := class.MapJson[key] ;
+
+    t := Gettype(v) ;
+    x := reflect.ValueOf(v) ;
+
+    switch(x.Kind()){
+    default:{
+            t = fmt.Sprintf("%v",x.Kind()) ;
+        }
+    }
+
+    _ = t ;
+
+    return v.(interface{}),t ;
 }
-*/
+
+func (class *JsonClass) GetterMap(key string) (map[string]interface{},string){
+    v := class.MapJson[key] ;
+
+    t := Gettype(v) ;
+
+    return v.(map[string]interface{}),t ;
+}
+
+func (class *JsonClass) GetterArray(key string) ([]interface{},string){
+    v := class.MapJson[key] ;
+    t := Gettype(v) ;
+    return v.([]interface{}),t ;
+}
+
+func (class *JsonClass) RAW() (map[string]interface{}){
+    return class.MapJson ;
+}
 
 func Json_decode(i ... interface{}) (JsonClass,error){
 
     var ret JsonClass ;
+    ret.JsonClass = "JsonClass" ;
 
     err := errors.New("ASSERT") ;
     err = nil ;
-    str := Strval(i[0]) ;
 
-    ret.JsonClass = "JsonClass" ;
-
-    json.Unmarshal([]byte(str),&(ret.Data)) ;
-
-    if(false){
-        log.Print(ret) ;
+    if(len(i) == 1){
+        str := Strval(i[0]) ;
+        json.Unmarshal([]byte(str),&(ret.MapJson)) ;
+    }else{
+        ret.MapJson = make(map[string]interface{}) ;
     }
 
     return ret , err ;
