@@ -78,8 +78,6 @@ func GuzzleHttpClient(anys ... any) (cURLHandler,error){
 
     if(len(anys) > 0){
         for kk,vv := range anys[0].(map[string]any){
-            Debugf("[%v][%v]",kk,vv);
-
             switch(kk){
             case "base_uri":{
                     ch.base_uri = vv.(string) ;
@@ -94,6 +92,7 @@ func GuzzleHttpClient(anys ... any) (cURLHandler,error){
 
 func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
     err := MyErrorNew("HOHO[%v]",123) ;
+    err = MyErrorNew("[%s]","hoge") ;
 
     var res GuzzleResponse ;
     res.ch = ch ;
