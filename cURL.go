@@ -91,7 +91,7 @@ func GuzzleHttpClient(anys ... any) (cURLHandler,error){
 }
 
 func (ch *cURLHandler) Request(anys ... any) (res GuzzleResponse,err error) {
-    err = E(1,"HOHO[%v]",123) ;
+    err = Err(1,"HOHO[%v]",123) ;
 
     res.ch = ch ;
 
