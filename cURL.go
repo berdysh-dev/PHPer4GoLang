@@ -93,7 +93,8 @@ func GuzzleHttpClient(anys ... any) (cURLHandler,error){
 }
 
 func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
-    err := errors.New("ASSERT") ;
+    err := MyErrorNew("HOHO[%v]",123) ;
+
     var res GuzzleResponse ;
     res.ch = ch ;
 
@@ -107,6 +108,7 @@ func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
 
     if(len(anys) > 2){
         for kk,vv := range anys[2].(map[string]any){
+            _ = vv ;
             switch(kk){
             case "http_errors":{
                 }
@@ -125,7 +127,6 @@ func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
     res.payload = "RESrES" ;
     res.stat = 201 ;
 
-    err = nil ;
     return res,err ;
 }
 
