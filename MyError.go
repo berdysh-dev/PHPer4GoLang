@@ -4,6 +4,7 @@ import (
     "fmt"
     "runtime"
     "strings"
+    "reflect"
 )
 
 type MyErrorStruct struct {
@@ -23,13 +24,25 @@ func (err *MyErrorStruct) Error() (string) {
 func MyErrorNew(v ... any) (error) {
     var err MyErrorStruct ;
 
-    switch(len(v)){
+    argc := len(v) ;
+    off := 0 ;
+    flag := 1 ;
+
+    if(argc > 0){
+        if(reflect.ValueOf(v[0]).Kind() == reflect.Int){
+            flag = v[0].(int) ;
+            argc -= 1 ;
+            off += 1 ;
+        }
+    }
+
+    if(flag == 0){ return nil ; }
+
+    switch(argc){
     case 0: return nil ;
-    case 1: err.mess = v[0].(string) ;
-    case 2: err.mess = fmt.Sprintf(v[0].(string),v[1]) ;
-    case 3: err.mess = fmt.Sprintf(v[0].(string),v[1],v[2]) ;
-    case 4: err.mess = fmt.Sprintf(v[0].(string),v[1],v[2],v[3]) ;
-    case 5: err.mess = fmt.Sprintf(v[0].(string),v[1],v[2],v[3],v[4]) ;
+    case 1: err.mess = v[off].(string) ;
+    case 2: err.mess = fmt.Sprintf(v[off].(string),v[off+1]) ;
+    case 3: err.mess = fmt.Sprintf(v[off].(string),v[off+1],v[off+2]) ;
     }
 
     pc, file, line, ok := runtime.Caller(1) ;
