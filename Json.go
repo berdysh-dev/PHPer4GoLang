@@ -12,7 +12,13 @@ _   "log"
 
 type JsonClass struct {
     JsonClass string "JsonClass" ;
-    MapJson map[string]any "MapJson" ;
+
+    MapJson     map[string]any  "MapJson" ;
+    SliceJson   []any           "SliceJson" ;
+    AnyJson     any             "AnyJson" ;
+
+    IsSlice     bool ;
+    kind        any ;
 } ;
 
 func (class *JsonClass) Getter(anys ... any) (any,error){
@@ -20,12 +26,28 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
     var kind string ;
     var x any ;
 
-    x = class.MapJson ;
+    switch(class.kind){
+    case reflect.Slice:{
+            // Debugf("Slice") ;
+            x = class.SliceJson ;
+        }
+    case reflect.Map:{
+            // Debugf("Map") ;
+            x = class.MapJson ;
+        }
+    default:{
+            Debugf("Other[%v]",class.kind) ;
+            x = class.AnyJson ;
+        }
+    }
 
     var args []any ;
 
     if(len(anys) == 1){
         t := fmt.Sprintf(`%T`,anys[0]) ;
+
+        // Debugf("!!!!!!!!!!!!Unknown[%v]",t);
+
         switch(t){
         case "[]string":{
                 for _ , v := range anys[0].([]string){
@@ -34,7 +56,18 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
             }
         case "[]interface {}":{
                 for _ , v := range anys[0].([]interface {}){
-                    args = append(args,v) ;
+                    t2 := fmt.Sprintf(`%T`,v) ;
+                    if(t2 == "[]string"){
+                        for _ , vv := range v.([]string){
+                            args = append(args,vv) ;
+                        }
+                    }else if(t2 == "[]interface {}"){
+                        for _ , vv := range v.([]interface {}){
+                            args = append(args,vv) ;
+                        }
+                    }else{
+                        args = append(args,v) ;
+                    }
                 }
             }
         case "[]any":{
@@ -43,10 +76,9 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
                 }
             }
         default:{
-                for _ , v := range anys[0].([4]string){
-                    Debugf("!!![%v]",v) ;
-                }
-                return nil,errors.New(t) ;
+
+
+                args = anys ;
             }
         }
     }else{
@@ -55,7 +87,9 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
 
     for iii:=0;iii<len(args);iii++ {
 
-        switch(reflect.ValueOf(args[iii]).Kind()){
+        ak := reflect.ValueOf(args[iii]).Kind() ;
+
+        switch(ak){
         case reflect.String:{
                 k = args[iii].(string) ;
             }
@@ -63,7 +97,7 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
                 k = args[iii].(int) ;
             }
         default:{
-                Debugf("Other") ;
+                Debugf("Other[%v]",ak) ;
             }
         }
 
@@ -127,18 +161,23 @@ func (class *JsonClass) Getter(anys ... any) (any,error){
     return x,nil ;
 }
 
-func (class *JsonClass) GetterMap(key string) (map[string]any,string){
-    v := class.MapJson[key] ;
-
-    t := Gettype(v) ;
-
-    return v.(map[string]any),t ;
+func (class *JsonClass) GetterMap(anys ... any) (map[string]any,error){
+    v,err := class.Getter(anys) ;
+    if(err == nil){
+        return v.(map[string]any),err ;
+    }else{
+        return nil,err ;
+    }
 }
 
-func (class *JsonClass) GetterArray(key string) ([]any,string){
-    v := class.MapJson[key] ;
-    t := Gettype(v) ;
-    return v.([]any),t ;
+func (class *JsonClass) GetterArray(anys ... any) ([]any,error){
+    v,err := class.Getter(anys) ;
+
+    if(err == nil){
+        return v.([]any),err ;
+    }else{
+        return nil,err ;
+    }
 }
 
 func convertUpper(uc string) (string){
@@ -149,8 +188,28 @@ func convertLower(uc string) (string){
     return strings.ToLower(uc[:1]) + uc[1:] ;
 }
 
-func (class *JsonClass) Raw() (map[string]any){
+func (class *JsonClass) Kind() (any){
+    return class.kind ;
+}
+
+func (class *JsonClass) Raw() (any){
+    switch(class.kind){
+    case reflect.Slice:{
+            return class.SliceJson ;
+        }
+    case reflect.Map:{
+            return class.MapJson ;
+        }
+    }
+    return class.AnyJson ;
+}
+
+func (class *JsonClass) Map() (map[string]any){
     return class.MapJson ;
+}
+
+func (class *JsonClass) Array() ([]any){
+    return class.SliceJson ;
 }
 
 func checker(name string,v any) (error){
@@ -194,9 +253,68 @@ func convertUpper_r (src any) (any){
             return tmp ;
         }
     case reflect.Float64:
-        return uint64(src.(float64)) ;
+        if(true){
+            return uint64(src.(float64)) ;
+        }else{
+            return src ;
+        }
     }
     return src ;
+}
+
+func (class *JsonClass) GetterJson(anys ... any) (JsonClass,error){
+    var ret JsonClass ;
+    ret.JsonClass = "JsonClass" ;
+
+    v,err := class.Getter(anys) ;
+    if(err == nil){
+
+        ret.kind = reflect.ValueOf(v).Kind() ;
+
+        // Debugf("!!![%v]",ret.kind) ;
+        // Debugf("!!![%v]",v) ;
+
+        switch(ret.kind){
+        case reflect.Slice:{
+                ret.SliceJson = v.([]any) ;
+                ret.IsSlice = true ;
+            }
+        case reflect.Map:{
+                ret.MapJson = v.(map[string]any) ;
+            }
+        default:{
+                ret.AnyJson = v ;
+            }
+        }
+
+        return ret,nil ;
+    }else{
+        return ret,err ;
+    }
+}
+
+func (class *JsonClass) String() (string){
+    switch(class.kind){
+    case reflect.String:
+        return class.AnyJson.(string) ;
+    }
+    return "" ;
+}
+
+func (class *JsonClass) Uint64() (uint64){
+    switch(class.kind){
+    case reflect.Uint64:
+        return class.AnyJson.(uint64) ;
+    }
+    return 0 ;
+}
+
+func (class *JsonClass) Float64() (float64){
+    switch(class.kind){
+    case reflect.Float64:
+        return class.AnyJson.(float64) ;
+    }
+    return 0 ;
 }
 
 func Json_decode(i ... any) (JsonClass,error){
@@ -212,6 +330,7 @@ func Json_decode(i ... any) (JsonClass,error){
         json.Unmarshal([]byte(str),&(ret.MapJson)) ;
         if(len(i) > 1){
             ret.MapJson = convertUpper_r(ret.MapJson).(map[string]any) ;
+            ret.kind = reflect.ValueOf(ret.MapJson).Kind() ;
         }
     }else{
         ret.MapJson = make(map[string]any) ;
