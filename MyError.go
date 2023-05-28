@@ -21,7 +21,7 @@ func (err *MyErrorStruct) Error() (string) {
     }
 }
 
-func MyErrorNew(v ... any) (error) {
+func E(v ... any) (error) {
     var err MyErrorStruct ;
 
     argc := len(v) ;

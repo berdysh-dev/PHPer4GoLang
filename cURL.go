@@ -90,12 +90,9 @@ func GuzzleHttpClient(anys ... any) (cURLHandler,error){
     return ch,err ;
 }
 
-func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
-    err := MyErrorNew(0,"HOHO[%v]",123) ;
+func (ch *cURLHandler) Request(anys ... any) (res GuzzleResponse,err error) {
+    err = E(1,"HOHO[%v]",123) ;
 
-    err = MyErrorNew(1,"HIHI") ;
-
-    var res GuzzleResponse ;
     res.ch = ch ;
 
     if(len(anys) > 0){
@@ -127,7 +124,7 @@ func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
     res.payload = "RESrES" ;
     res.stat = 201 ;
 
-    return res,err ;
+    return ;
 }
 
 func (res *GuzzleResponse) GetStatusCode (anys ... any) int {
