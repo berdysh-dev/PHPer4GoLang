@@ -4,6 +4,7 @@ import (
 _   "log"
     "fmt"
     "strings"
+    "strconv"
     "errors"
     "reflect"
     "encoding/json"
@@ -14,17 +15,116 @@ type JsonClass struct {
     MapJson map[string]any "MapJson" ;
 } ;
 
+func (class *JsonClass) Getter(anys ... any) (any,error){
+    var k any ;
+    var kind string ;
+    var x any ;
 
-func (class *JsonClass) Getter(anys ... any) (any,string){
+    x = class.MapJson ;
+
+    var args []any ;
+
     if(len(anys) == 1){
-        v := class.MapJson[anys[0].(string)] ;
-        x := reflect.ValueOf(v) ;
-        k := fmt.Sprintf("%v",x.Kind()) ;
-        return v.(any),k ;
+        t := fmt.Sprintf(`%T`,anys[0]) ;
+        switch(t){
+        case "[]string":{
+                for _ , v := range anys[0].([]string){
+                    args = append(args,v) ;
+                }
+            }
+        case "[]interface {}":{
+                for _ , v := range anys[0].([]interface {}){
+                    args = append(args,v) ;
+                }
+            }
+        case "[]any":{
+                for _ , v := range anys[0].([]any){
+                    args = append(args,v) ;
+                }
+            }
+        default:{
+                for _ , v := range anys[0].([4]string){
+                    Debugf("!!![%v]",v) ;
+                }
+                return nil,errors.New(t) ;
+            }
+        }
     }else{
-        var v any ;
-        return v,"error" ;
+        args = anys ;
     }
+
+    for iii:=0;iii<len(args);iii++ {
+
+        switch(reflect.ValueOf(args[iii]).Kind()){
+        case reflect.String:{
+                k = args[iii].(string) ;
+            }
+        case reflect.Int:{
+                k = args[iii].(int) ;
+            }
+        default:{
+                Debugf("Other") ;
+            }
+        }
+
+        kind = fmt.Sprintf("%v",reflect.ValueOf(x).Kind()) ;
+
+        _ = kind ;
+        _ = k ;
+
+        // Debugf("kind[%v]",kind);
+
+        switch(kind){
+        case "map":{
+                tmp := x.(map[string]any) ;
+                v,ok := tmp[k.(string)] ;
+                if(ok){
+                    x = v ;
+                    kind = fmt.Sprintf("%v",reflect.ValueOf(x).Kind()) ;
+                }else{
+                    return nil,errors.New("NotExists") ;
+                }
+            }
+        case "slice":{
+                tmp := x.([]any) ;
+
+                kindK := fmt.Sprintf("%v",reflect.ValueOf(k).Kind()) ;
+
+                if(kindK == "string"){
+                    n,err := strconv.Atoi(k.(string)) ;
+                    if(err == nil){
+                        k = n ;
+                    }else{
+                        return nil,err ;
+                    }
+                }
+
+                kindK = fmt.Sprintf("%v",reflect.ValueOf(k).Kind()) ;
+
+                // Debugf("[%v]",kindK) ;
+
+                if(kindK != "int"){
+                    return nil,errors.New("NotInt") ;
+                }
+                
+                if(k.(int) < 0){
+                    k = (len(tmp) + k.(int)) ;
+
+                    Debugf("!!!!!![%v]",k);
+                }
+
+                if(k.(int) < len(tmp)){
+                    v := tmp[k.(int)] ;
+                    x = v ;
+                    kind = fmt.Sprintf("%v",reflect.ValueOf(x).Kind()) ;
+                }else{
+                    return nil,errors.New("TooBig") ;
+                }
+            }
+        }
+    }
+
+    return x,nil ;
 }
 
 func (class *JsonClass) GetterMap(key string) (map[string]any,string){
@@ -53,10 +153,20 @@ func (class *JsonClass) Raw() (map[string]any){
     return class.MapJson ;
 }
 
-func checker(name string,v any) (any){
+func checker(name string,v any) (error){
+    err := errors.New("ASSERT") ;
+
     k := reflect.ValueOf(v).Kind() ;
-    Debugf("Check[%v][%v][%v]",name,k,v) ;
-    return v ;
+
+    _ =  k ;
+
+    //Debugf("Check[%v][%v][%v]",name,k,v) ;
+
+    if(true){
+        err = nil ;
+    }
+
+    return err ;
 }
 
 func convertUpper_r (src any) (any){
