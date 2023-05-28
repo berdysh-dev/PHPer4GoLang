@@ -8,10 +8,11 @@ package PHPer4GoLang
 import (
     "reflect"
     "strconv"
+    "strings"
     "fmt"
 )
 
-func Strval(i interface{}) (string){
+func Strval(i any) (string){
     ret := "" ;
 
     v := reflect.ValueOf(i) ;
@@ -38,7 +39,7 @@ func Strval(i interface{}) (string){
     return ret ;
 }
 
-func Intval(i interface{}) (int){
+func Intval(i any) (int){
     ret := 0 ;
 
     v := reflect.ValueOf(i) ;
@@ -72,7 +73,7 @@ func Intval(i interface{}) (int){
     return ret ;
 }
 
-func Boolval(i interface{}) (bool){
+func Boolval(i any) (bool){
 
     ret := false ;
 
@@ -115,15 +116,20 @@ func Boolval(i interface{}) (bool){
     return ret ;
 }
 
-func Gettype(i interface{}) (string){
+func Gettype(i any) (string){
     return fmt.Sprintf(`%T`,i) ;
 }
 
-func Gettype2(i interface{}) (string,string){
+func Gettype2(i any) (string,string){
     v := reflect.ValueOf(i)
 
     k := fmt.Sprintf(`%v`,v.Kind()) ;
     t := fmt.Sprintf(`%T`,i) ;
+
+    t = strings.Replace(t, "interface{}", "any", -1) ;
+    t = strings.Replace(t, "interface {}", "any", -1) ;
+
+    // Debugf("![%v]",t) ;
 
     return k,t ;
 }

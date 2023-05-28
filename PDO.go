@@ -29,22 +29,22 @@ type ClassPrepare struct {
 } ;
 
 
-func (class *ClassPrepare) BindValue (v ...interface{}) (error){
+func (class *ClassPrepare) BindValue (v ...any) (error){
     err := errors.New("ASSERT") ;
     return err ;
 }
 
-func (class *ClassPrepare) Execute (v ...interface{}) (error){
+func (class *ClassPrepare) Execute (v ...any) (error){
     err := errors.New("ASSERT") ;
     return err ;
 }
 
-func (class *ClassPrepare) FetchAll (v ...interface{}) (error){
+func (class *ClassPrepare) FetchAll (v ...any) (error){
     err := errors.New("ASSERT") ;
     return err ;
 }
 
-func (class *ClassPDO) Prepare(v ...interface{}) (ClassPrepare,error){
+func (class *ClassPDO) Prepare(v ...any) (ClassPrepare,error){
     err := errors.New("ASSERT") ;
 
     var prepare ClassPrepare ;
@@ -58,7 +58,7 @@ func (class *ClassPDO) Close() (error){
     return err ;
 }
 
-func PDO(v ...interface{}) (ClassPDO){
+func PDO(v ...any) (ClassPDO){
     var class ClassPDO ;
 
     return class ;

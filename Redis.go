@@ -20,7 +20,7 @@ type ClassRedis struct {
     client *redis.Client ;
 } ;
 
-func (class *ClassRedis) Connect(v ...interface{}) (error){
+func (class *ClassRedis) Connect(v ...any) (error){
     err := errors.New("ASSERT") ;
     switch(len(v)){
     case 1:{
@@ -71,7 +71,7 @@ func (class *ClassRedis) Close() (error){
     return err ;
 }
 
-func Redis(v ...interface{}) (ClassRedis){
+func Redis(v ... any) (ClassRedis){
     var class ClassRedis ;
 
     class.host = "localhost" ;

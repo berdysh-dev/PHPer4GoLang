@@ -2,7 +2,7 @@ package PHPer4GoLang
 
 import ("strings")
 
-func Explode(v ... interface{}) []string {
+func Explode(v ... any) []string {
     separator := v[0].(string) ;
     str := v[1].(string) ;
 

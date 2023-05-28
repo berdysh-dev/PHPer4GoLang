@@ -6,7 +6,7 @@ import (
     "strings"
 )
 
-func Debugf(v ...interface{}){
+func Debugf(v ... any){
 
     pc, file, line, ok := runtime.Caller(1) ;
     _ = pc ; _ = ok ;

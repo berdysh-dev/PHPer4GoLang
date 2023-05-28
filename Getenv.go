@@ -4,6 +4,6 @@ import (
     "os"
 )
 
-func Getenv(v interface{}) string {
+func Getenv(v any) string {
     return os.Getenv(v.(string)) ;
 }

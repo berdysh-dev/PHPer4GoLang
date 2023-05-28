@@ -66,7 +66,7 @@ func Curl_init() (cURLHandler,error){
     return ch,err ;
 }
 
-func Curl_setopt(v ...interface{}){
+func Curl_setopt(v ...any){
 
     var ch *cURLHandler = v[0].(*cURLHandler) ;
 
