@@ -30,6 +30,8 @@ type cURLHandler struct {
     http_Client     http.Client ;
     http_Response   *http.Response ;
     TLS             *tls.ConnectionState ;
+
+    base_uri        string ;
 } ;
 
 type cURLInfo struct {
@@ -57,12 +59,71 @@ type cURLInfo struct {
     Redirect_url                string ;
 } ;
 
+type GuzzleResponse struct {
+    ch          *cURLHandler ;
+    method      string ;
+    url         string ;
+} ;
+
+func GuzzleHttpClient(anys ... any) (cURLHandler,error){
+    err := errors.New("ASSERT") ;
+    var ch cURLHandler ;
+    ch.method = "GET" ;
+
+    if(len(anys) > 0){
+        for kk,vv := range anys[0].(map[string]any){
+            Debugf("[%v][%v]",kk,vv);
+
+            switch(kk){
+            case "base_uri":{
+                    ch.base_uri = vv.(string) ;
+                }
+            }
+        }
+    }
+
+    err = nil ;
+    return ch,err ;
+}
+
+func (ch *cURLHandler) Request(anys ... any) (GuzzleResponse,error) {
+    err := errors.New("ASSERT") ;
+    var ret GuzzleResponse ;
+    ret.ch = ch ;
+
+    if(len(anys) > 0){
+        ret.method = anys[0].(string) ;
+    }
+
+    if(len(anys) > 1){
+        ret.url = anys[1].(string) ;
+    }
+
+    if(len(anys) > 2){
+        for kk,vv := range anys[2].(map[string]any){
+            Debugf("[%v][%v]",kk,vv);
+        }
+    }
+
+    err = nil ;
+    return ret,err ;
+}
+
+func (req *GuzzleResponse) GetStatusCode (anys ... any) int {
+    return 200 ;
+}
+
+func (req *GuzzleResponse) GetBody(anys ... any) string {
+    return req.ch.base_uri ;
+}
+
 func Curl_init() (cURLHandler,error){
     err := errors.New("ASSERT") ;
     var ch cURLHandler ;
 
     ch.method = "GET" ;
 
+    err = nil ;
     return ch,err ;
 }
 

@@ -208,7 +208,7 @@ func (class *JsonClass) Map() (map[string]any){
     return class.MapJson ;
 }
 
-func (class *JsonClass) Array() ([]any){
+func (class *JsonClass) Slice() ([]any){
     return class.SliceJson ;
 }
 
